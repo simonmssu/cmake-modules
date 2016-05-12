@@ -62,7 +62,8 @@ find_path(LIBUSB1_INCLUDE_DIR
 	HINTS
 	"${LIBUSB1_ROOT_DIR}"
 	PATH_SUFFIXES
-	include)
+	include
+	libusb-1.0)
 
 find_library(LIBUSB1_LIBRARY
 	NAMES
@@ -81,11 +82,9 @@ find_package_handle_standard_args(Libusb1
 	LIBUSB1_INCLUDE_DIR)
 
 if(LIBUSB1_FOUND)
-	set(LIBUSB1_LIBRARIES
-		"${LIBUSB1_LIBRARY}")
+	set(LIBUSB1_LIBRARIES "${LIBUSB1_LIBRARY}")
 
-	set(LIBUSB1_INCLUDE_DIRS
-		"${LIBUSB1_INCLUDE_DIR}")
+	set(LIBUSB1_INCLUDE_DIRS "${LIBUSB1_INCLUDE_DIR}")
 
 	mark_as_advanced(LIBUSB1_ROOT_DIR)
 endif()
