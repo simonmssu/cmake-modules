@@ -26,8 +26,11 @@
 # Incorporates work from the module contributed to VRPN under the same license:
 # 2011 Philippe Crassous (ENSAM ParisTech / Institut Image) p.crassous _at_ free.fr
 #
-# Copyright Philippe Crassous 2011.
-# Copyright Sensics, Inc. 2016.
+# Copyright 2011, Philippe Crassous
+# Copyright 2016, Sensics, Inc.
+#
+# SPDX-License-Identifier: BSL-1.0
+#
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -46,18 +49,18 @@ macro(_jsoncpp_check_for_real_jsoncpplib)
 	set(__jsoncpp_have_jsoncpplib FALSE)
 	if(TARGET jsoncpp_lib)
 		get_property(__jsoncpp_lib_type TARGET jsoncpp_lib PROPERTY TYPE)
-		#message(STATUS "__jsoncpp_lib_type ${__jsoncpp_lib_type}")
 		# We make interface libraries. If an actual config module made it, it would be an imported library.
 		if(NOT __jsoncpp_lib_type STREQUAL "INTERFACE_LIBRARY")
-			#message("have jsoncpp_lib and we didn't invent it ourselves")
 			set(__jsoncpp_have_jsoncpplib TRUE)
 		endif()
 	endif()
+	#message(STATUS "__jsoncpp_have_jsoncpplib ${__jsoncpp_have_jsoncpplib}")
 endmacro()
 
 include(FindPackageHandleStandardArgs)
 # Ensure that if this is TRUE later, it's because we set it.
 set(JSONCPP_FOUND FALSE)
+set(__jsoncpp_have_jsoncpplib FALSE)
 
 # See if we find a CMake config file - there is no harm in calling this more than once,
 # and we need to call it at least once every CMake invocation to create the original
@@ -71,14 +74,34 @@ if(jsoncpp_FOUND)
 
 	# part of the string to indicate if we found a real jsoncpp_lib (and what kind)
 	_jsoncpp_check_for_real_jsoncpplib()
+
+	macro(_jsoncpp_apply_map_config target)
+		if(MSVC)
+			# Can't do this - different runtimes, incompatible ABI, etc.
+			set(_jsoncpp_debug_fallback)
+		else()
+			set(_jsoncpp_debug_fallback DEBUG)
+			#osvr_stash_map_config(DEBUG DEBUG RELWITHDEBINFO RELEASE MINSIZEREL NONE)
+		endif()
+		# Appending, just in case using project or upstream fixes this.
+		set_property(TARGET ${target} APPEND PROPERTY MAP_IMPORTED_CONFIG_RELEASE RELEASE RELWITHDEBINFO MINSIZEREL NONE ${_jsoncpp_debug_fallback})
+		set_property(TARGET ${target} APPEND PROPERTY MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELWITHDEBINFO RELEASE MINSIZEREL NONE ${_jsoncpp_debug_fallback})
+		set_property(TARGET ${target} APPEND PROPERTY MAP_IMPORTED_CONFIG_MINSIZEREL MINSIZEREL RELEASE RELWITHDEBINFO NONE ${_jsoncpp_debug_fallback})
+		set_property(TARGET ${target} APPEND PROPERTY MAP_IMPORTED_CONFIG_NONE NONE RELEASE RELWITHDEBINFO MINSIZEREL ${_jsoncpp_debug_fallback})
+		if(NOT MSVC)
+			set_property(TARGET ${target} APPEND PROPERTY MAP_IMPORTED_CONFIG_DEBUG DEBUG RELWITHDEBINFO RELEASE MINSIZEREL NONE)
+		endif()
+	endmacro()
 	if(__jsoncpp_have_jsoncpplib)
 		list(APPEND __jsoncpp_info_string "[${__jsoncpp_lib_type}]")
+		_jsoncpp_apply_map_config(jsoncpp_lib)
 	else()
 		list(APPEND __jsoncpp_info_string "[]")
 	endif()
 	# part of the string to indicate if we found jsoncpp_lib_static
 	if(TARGET jsoncpp_lib_static)
 		list(APPEND __jsoncpp_info_string "[T]")
+		_jsoncpp_apply_map_config(jsoncpp_lib_static)
 	else()
 		list(APPEND __jsoncpp_info_string "[]")
 	endif()

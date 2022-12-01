@@ -5,6 +5,7 @@
 #
 # Non-cache variables you might use in your CMakeLists.txt:
 #  CPPCHECK_FOUND
+#  CPPCHECK_VERSION
 #  CPPCHECK_POSSIBLEERROR_ARG
 #  CPPCHECK_UNUSEDFUNC_ARG
 #  CPPCHECK_STYLE_ARG
@@ -23,10 +24,11 @@
 # http://academic.cleardefinition.com
 # Iowa State University HCI Graduate Program/VRAC
 #
-# Copyright Iowa State University 2009-2010.
+# Copyright 2009-2010, Iowa State University
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
+# SPDX-License-Identifier: BSL-1.0
 
 file(TO_CMAKE_PATH "${CPPCHECK_ROOT_DIR}" CPPCHECK_ROOT_DIR)
 set(CPPCHECK_ROOT_DIR
@@ -148,6 +150,11 @@ endif()
 
 set(CPPCHECK_ALL
 	"${CPPCHECK_EXECUTABLE} ${CPPCHECK_POSSIBLEERROR_ARG} ${CPPCHECK_UNUSEDFUNC_ARG} ${CPPCHECK_STYLE_ARG} ${CPPCHECK_QUIET_ARG} ${CPPCHECK_INCLUDEPATH_ARG} some/include/path")
+
+execute_process(COMMAND "${CPPCHECK_EXECUTABLE}" --version
+  OUTPUT_VARIABLE CPPCHECK_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(REGEX REPLACE ".* ([0-9]\\.([0-9]\\.[0-9])?)" "\\1"
+    CPPCHECK_VERSION "${CPPCHECK_VERSION}")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(cppcheck
